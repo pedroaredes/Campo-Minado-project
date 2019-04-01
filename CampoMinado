@@ -1,0 +1,259 @@
+//Emerson Marques Ferreira
+//Pedro Henrique Lacerda Aredes 
+//Gabriel Alves 
+package campominado;
+
+import java.util.Scanner;
+import java.util.Random;
+
+public class CampoMinado {
+
+    public static void main(String[] args) {
+        game();
+    }
+
+    private static void game() {
+        Scanner ler = new Scanner(System.in);
+        int jogoAtivo = -1;
+        int linha, coluna, acao = 0, bombas = 0, jogadas = 0, tamanho = 0, dificuldade = 0, i = 0, l = 0;
+        System.out.println("Qual a dificuldade deseja jogar?");
+        System.out.println("Se deseja jogar no fácil digite 1");
+        System.out.println("Se deseja jogar no médio digite 2");
+        System.out.println("Se deseja jogar no dificil digite 3");
+        dificuldade = ler.nextInt();
+        tamanho = tamanhomatriz(dificuldade);
+        //verifica se o código digitado pelo jogador é valido pra começar a jogar
+        if (liberado(dificuldade) == true) {
+            //cria o Tabuleiro
+            char campo[][] = initialize(tamanho);
+            //forma de inicializar uma matriz com seus espaços preenchidos
+            char resposta[][] = new char[tamanho][tamanho];
+
+            preencheBombas(resposta, dificuldade, tamanho);
+            int bombasExatas = contaBombas(resposta);
+            bombas = bombasExatas;            
+
+            //jogo começou                    
+            while (jogoAtivo == -1) {
+
+                print(campo);
+                System.out.println("Digite a ação que deseja realizar");
+                System.out.println("Caso queria revelar uma posição digite 1");
+                if (bombas > 0) {
+                    System.out.println("Caso queria marcar uma posição digite 2");
+                }
+                if (jogadas > 0) {
+                    System.out.println("Caso queira desmarcar uma posição digite 3");
+                }
+                System.out.println("O número de bombas é igual a: " + bombas);
+
+                acao = ler.nextInt();
+                if (acao != 0) {
+                    System.out.println("Escolha uma posição para executar a ação");
+                    linha = ler.nextInt();
+                    coluna = ler.nextInt();
+                    if (step(resposta, linha, coluna, acao) == 1) {
+                        campo[linha][coluna] = 'X';
+                        jogoAtivo = -1;
+                        bombas -= 1;
+                        jogadas++;
+                    } else if (step(resposta, linha, coluna, acao) == 0) {
+                        campo[linha][coluna] = resposta[linha][coluna];
+                        print(campo);
+                        System.out.println("Você perdeu");
+                        jogoAtivo = 0;
+                    } else if (step(resposta, linha, coluna, acao) == -1) {
+                        campo[linha][coluna] = resposta[linha][coluna];
+                        jogoAtivo = -1;
+                    } else if (step(resposta, linha, coluna, acao) == 2) {
+                        campo[linha][coluna] = '-';
+                        bombas++;
+                        jogadas--;
+                    }
+                }
+                if (status(campo, resposta, bombasExatas) == true) {
+                    print(resposta);
+                    System.out.println("Parabens,você ganhou!");
+                    jogoAtivo = 0;
+                }
+
+            }
+        } else {
+            game();
+
+        }
+    }
+
+    //inicialização do campo de jogo
+    private static char[][] initialize(int tamanho) {
+        //cria uma matriz de caracteres 3x3
+        char tabuleiro[][] = new char[tamanho][tamanho];
+        for (int i = 0; i < tabuleiro.length; i++) //anda na linha
+        {
+            for (int j = 0; j < tabuleiro[0].length; j++) //anda na coluna
+            {
+                tabuleiro[i][j] = '-';
+            }
+        }
+        return tabuleiro;
+    }
+
+    //printa o campo pro jogador
+    private static void print(char[][] M) {
+        for (int i = 0; i < M.length; i++) { //anda na linha
+            for (int j = 0; j < M[0].length; j++) //anda na coluna
+            {
+                System.out.printf("[" + M[i][j] + "]");
+            }
+
+            System.out.println();
+        }
+    }
+
+    //executa a jogada que o jogador solicitou
+    private static int step(char[][] resposta, int linha, int coluna, int acao) {
+        //Marca a casa que foi pedida
+        if (acao == 2) {
+            return 1;
+        }
+        // Desmarca a casa que foi pedida
+        if (acao == 3) {
+            return 2;
+        }
+        //Perdeu o jogo
+        if (resposta[linha][coluna] == '*') {
+            return 0;
+        }
+
+        return -1;
+    }
+
+    private static int contaBombas(char resposta[][]) {
+        int bombas = 0;
+        for (int i = 0; i < resposta.length; i++) {
+            for (int j = 0; j < resposta.length; j++) {
+                if (resposta[i][j] == '*') {
+                    dicasBombas(i, j, resposta);
+                    bombas += 1;
+
+                }
+            }
+        }
+        return bombas;
+    }
+    //verifica se o jogo acabou
+
+    private static boolean status(char[][] campo, char[][] resposta, int bombasExatas) {
+        int certo = 0;
+        for (int i = 0; i < campo.length; i++) {
+            for (int j = 0; j < campo[0].length; j++) {
+                if (campo[i][j] == 'X' && resposta[i][j] == '*') {
+                    certo++;
+                }
+                if (certo == bombasExatas) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static int tamanhomatriz(int dificuldade) {
+        if (dificuldade == 1) {
+            return 5;
+        }
+        if (dificuldade == 2) {
+            return 7;
+        }
+        if (dificuldade == 3) {
+            return 10;
+        }
+        return 0;
+    }
+
+    //verifica se o número digitado pelo jogador é valido pra começar o jogo
+    private static boolean liberado(int dificuldade) {
+        if (dificuldade > 0 && dificuldade < 4) {
+            return true;
+        }
+        return false;
+    }
+
+    //gera números aleatórios pras posições das bombas
+    public static int bombasRandom(char M[][], int tamanho) {
+        Random gerador = new Random();
+        return gerador.nextInt(tamanho);
+    }
+
+    private static void preencheBombas(char[][] resposta, int dificuldade, int tamanho) {
+        if (dificuldade == 1) {
+            for (int i = 0; i < 5; i++) {
+                int c = bombasRandom(resposta, tamanho);
+                int l = bombasRandom(resposta, tamanho);
+                if (resposta[c][l] == '*') {
+                    c = bombasRandom(resposta, tamanho);
+                    l = bombasRandom(resposta, tamanho);
+                    resposta[c][l] = '*';
+                } else {
+                    resposta[c][l] = '*';
+                }
+
+            }
+
+        }
+        if (dificuldade == 2) {
+            for (int i = 0; i < 7; i++) {
+                int c = bombasRandom(resposta, tamanho);
+                int l = bombasRandom(resposta, tamanho);
+
+                if (resposta[c][l] == '*') {
+                    c = bombasRandom(resposta, tamanho);
+                    l = bombasRandom(resposta, tamanho);
+                    resposta[c][l] = '*';
+                } else {
+                    resposta[c][l] = '*';
+                }
+            }
+        }
+        if (dificuldade == 3) {
+            for (int i = 0; i < 10; i++) {
+                int c = bombasRandom(resposta, tamanho);
+                int l = bombasRandom(resposta, tamanho);
+                if (resposta[c][l] == '*') {
+                    c = bombasRandom(resposta, tamanho);
+                    l = bombasRandom(resposta, tamanho);
+                    resposta[c][l] = '*';
+                } else {
+                    resposta[c][l] = '*';
+                }
+            }
+        }
+    }
+
+    //preenche a matriz resposta com os números em volta da bomba
+    private static void dicasBombas(int i, int j, char resposta[][]) {
+        int dica = 1;
+        char d;
+        for (int l = i - 1; l < i + 2; l++) {
+            for (int c = j - 1; c < j + 2; c++) {
+                if (l > -1 && c > -1 && l < resposta.length && c < resposta.length) {
+                    if (resposta[l][c] == '*') {
+                        resposta[l][c] = '*';
+                    } else if (resposta[l][c] != '*' && resposta[l][c] != ' ') {
+                        d = resposta[l][c];                        
+                        int a = Character.getNumericValue(d);
+                        if (a > 0) {
+                            a += 1;
+                            resposta[l][c] = (char) (a + '0');
+                        } else {
+                            resposta[l][c] = (char) (dica + '0');
+                        }
+
+                    } else {
+                        resposta[l][c] = (char) (dica + '0');
+                    }
+                }
+            }
+        }
+    }
+}
